@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GPS Locker</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" media="print" onload="this.media='all'">
+  <style>
+    :root {
+      --bg: #000; --bg2: #03080b; --surface: #030b0e; --surface2: #061217;
+      --border: #0d2630; --border2: #164252;
+      --accent: #00e5ff; --green: #00ff88; --amber: #ffaa00; --red: #ff4455; --blue: #4d8dff; --purple: #cc88ff;
+      --text: #b0f4ff; --dim: #4f7280; --hi: #e8fdff;
+      --c-gps: #4d8dff; --c-glo: #ff5566; --c-bds: #ffaa00; --c-gal: #cc88ff; --c-qzss: #00ff88; --c-sbas: #8a9aa0; --c-navic: #ff77cc;
+      --mono: 'Share Tech Mono', ui-monospace, 'Roboto Mono', Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--sans);
+      font-size: 14px; line-height: 1.6; min-height: 100vh;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+      padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    /* header */
+    .header {
+      background: #060606; border-bottom: 1px solid var(--border);
+      padding: 10px 16px; padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+      display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .logo { width: 40px; height: 40px; flex: none; }
+    .logo .orbit { transform-origin: 20px 20px; animation: spin 6s linear infinite; }
+    .logo .orbit2 { transform-origin: 20px 20px; animation: spin 10s linear infinite reverse; }
+    .logo.off .orbit, .logo.off .orbit2 { animation-play-state: paused; opacity: .45; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .h-text { flex: 1; min-width: 0; }
+    .h-title { font-family: var(--mono); font-size: 15px; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
+    .h-sub { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+    .h-btn {
+      background: transparent; border: 1px solid var(--accent); border-radius: 3px; color: var(--accent);
+      padding: 7px 12px; font-size: 11px; font-family: var(--mono); letter-spacing: 1px; cursor: pointer;
+    }
+    .h-btn:active { background: var(--accent); color: #000; }
+
+    .sec-title { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--dim); font-family: var(--mono); padding: 22px 16px 8px; display: flex; justify-content: space-between; align-items: baseline; }
+    .sec-title::before { content: '// '; color: var(--accent); opacity: .6; margin-right: 4px; }
+    .sec-title span:first-child { flex: 1; }
+    .box { margin: 0 14px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+
+    /* hero */
+    .hero { margin: 14px 14px 0; border: 1px solid var(--border); border-radius: 4px; padding: 16px; background: var(--surface); position: relative; overflow: hidden; }
+    .hero.on { border-color: rgba(0,229,255,.45); box-shadow: 0 0 24px rgba(0,229,255,.08) inset; }
+    .hero.search { border-color: rgba(255,170,0,.45); }
+    .hero-row { display: flex; align-items: center; gap: 14px; }
+    .hero-big { font-family: var(--mono); font-size: 34px; color: var(--hi); line-height: 1.1; }
+    .hero-big small { font-size: 16px; color: var(--dim); }
+    .hero-state { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); }
+    .hero.on .hero-state { color: var(--accent); }
+    .hero.search .hero-state { color: var(--amber); }
+    .hero-info { flex: 1; min-width: 0; }
+    .hero-line { font-family: var(--mono); font-size: 12px; color: var(--text); margin-top: 4px; }
+    .lock-btn {
+      flex: none; width: 92px; height: 92px; border-radius: 50%;
+      border: 2px solid var(--dim); background: var(--bg2); color: var(--dim);
+      font-family: var(--mono); font-size: 13px; letter-spacing: 1.5px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      transition: border-color .2s, color .2s, box-shadow .2s;
+    }
+    .lock-btn svg { width: 28px; height: 28px; }
+    .lock-btn.on { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 18px rgba(0,229,255,.35); }
+    .lock-btn:active { transform: scale(.96); }
+
+    /* stats */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 14px 0; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 9px 10px; min-width: 0; }
+    .stat-k { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+    .stat-v { font-family: var(--mono); font-size: 18px; color: var(--hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-v small { font-size: 11px; color: var(--dim); }
+
+    .coords { display: flex; align-items: center; gap: 10px; }
+    .coords-v { flex: 1; font-family: var(--mono); font-size: 14px; color: var(--hi); word-break: break-all; }
+    .small-btn {
+      background: transparent; border: 1px solid var(--border2); border-radius: 3px; color: var(--accent);
+      padding: 6px 10px; font-size: 10.5px; font-family: var(--mono); letter-spacing: .8px; cursor: pointer; white-space: nowrap;
+    }
+    .small-btn:active { background: var(--accent); color: #000; }
+
+    /* constellations */
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border2); color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    /* sky plot */
+    .sky-wrap { display: flex; justify-content: center; }
+    #sky { width: 100%; max-width: 340px; height: auto; display: block; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; font-family: var(--mono); font-size: 10px; color: var(--dim); margin-top: 8px; }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+
+    /* signal bars */
+    .bars { display: flex; align-items: flex-end; gap: 3px; height: 130px; overflow-x: auto; padding-bottom: 2px; }
+    .bar-col { flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .bar-pair { display: flex; align-items: flex-end; gap: 1px; height: 100px; }
+    .bar { width: 9px; border-radius: 2px 2px 0 0; min-height: 2px; }
+    .bar.l5 { width: 6px; opacity: .65; }
+    .bar.unused { opacity: .35; }
+    .bar-lbl { font-family: var(--mono); font-size: 8.5px; color: var(--dim); margin-top: 3px; white-space: nowrap; }
+    .bar-lbl.used { color: var(--hi); }
+    .muted { color: var(--dim); font-size: 12px; font-family: var(--mono); }
+
+    /* lists, rows */
+    .row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .row:last-child { border-bottom: none; }
+    .row-main { flex: 1; min-width: 0; }
+    .row-title { color: var(--hi); font-size: 13.5px; }
+    .row-sub { font-family: var(--mono); font-size: 10.5px; color: var(--dim); word-break: break-all; }
+
+    .switch { position: relative; width: 42px; height: 24px; flex: none; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--surface2); border: 1px solid var(--border2); border-radius: 12px; transition: .2s; cursor: pointer; }
+    .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: var(--dim); border-radius: 50%; transition: .2s; }
+    .switch input:checked + .slider { border-color: var(--accent); background: rgba(0,229,255,.12); }
+    .switch input:checked + .slider::before { transform: translateX(18px); background: var(--accent); }
+
+    .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .tool-btn {
+      background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; color: var(--text);
+      padding: 12px 10px; text-align: left; cursor: pointer; font-family: var(--sans);
+    }
+    .tool-btn b { display: block; font-family: var(--mono); font-weight: normal; color: var(--accent); font-size: 12.5px; letter-spacing: .5px; }
+    .tool-btn span { display: block; font-size: 11px; color: var(--dim); line-height: 1.4; margin-top: 3px; }
+    .tool-btn.danger b { color: var(--amber); }
+    .tool-btn:active { border-color: var(--accent); }
+
+    .note { border-left: 2px solid var(--blue); background: rgba(77,141,255,.06); padding: 10px 12px; border-radius: 0 4px 4px 0; font-size: 13px; }
+    .note.warn { border-left-color: var(--amber); background: rgba(255,170,0,.07); }
+    .note .small-btn { margin-top: 8px; color: var(--amber); border-color: rgba(255,170,0,.45); }
+
+    body.busy .act { opacity: .45; pointer-events: none; }
+    .hidden { display: none !important; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translateX(-50%) translateY(20px);
+      background: #0b1a20; border: 1px solid var(--border2); color: var(--hi); font-family: var(--mono); font-size: 12px;
+      padding: 9px 14px; border-radius: 4px; opacity: 0; transition: .25s; pointer-events: none; max-width: 90vw; text-align: center; z-index: 20;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .footer { text-align: center; padding: 26px 16px 8px; font-size: 10px; font-family: var(--mono); color: var(--dim); }
+    .footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <svg class="logo off" id="logo" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="17" fill="none" stroke="#0d2630" stroke-width="1"/>
+    <circle cx="20" cy="20" r="11" fill="none" stroke="#164252" stroke-width="1" stroke-dasharray="2 3"/>
+    <circle cx="20" cy="20" r="4.2" fill="none" stroke="#00e5ff" stroke-width="1.6"/>
+    <circle cx="20" cy="20" r="1.6" fill="#00e5ff"/>
+    <g class="orbit"><circle cx="20" cy="3" r="2.4" fill="#00e5ff"/></g>
+    <g class="orbit2"><circle cx="31" cy="20" r="1.7" fill="#cc88ff"/></g>
+  </svg>
+  <div class="h-text">
+    <div class="h-title">GPS Locker</div>
+    <div class="h-sub" id="hSub">gnss keep-alive</div>
+  </div>
+  <button class="h-btn" onclick="location.href='help.html'">HELP</button>
+</div>
+
+<!-- permission warning -->
+<div class="box hidden" id="permBox" style="margin-top:14px">
+  <div class="note warn">
+    <strong>The system blocks GPS Locker</strong><br>
+    <span id="permText">Location or notifications are not allowed.</span><br>
+    Allow Location <strong>All the time</strong> and Notifications on the next screen, then come back.
+    <br><button class="small-btn act" onclick="openPermissions()">OPEN SETTINGS</button>
+  </div>
+</div>
+
+<!-- hero -->
+<div class="hero" id="hero">
+  <div class="hero-row">
+    <div class="hero-info">
+      <div class="hero-state" id="heroState">off</div>
+      <div class="hero-big" id="heroBig">--<small> sats</small></div>
+      <div class="hero-line" id="heroLine">Tap LOCK to hold the GPS on</div>
+    </div>
+    <button class="lock-btn act" id="lockBtn" onclick="toggleLock()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/>
+        <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>
+      </svg>
+      <span id="lockLbl">LOCK</span>
+    </button>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="stat"><div class="stat-k">Satellites</div><div class="stat-v" id="sSats">-</div></div>
+  <div class="stat"><div class="stat-k">Signals</div><div class="stat-v" id="sSig">-</div></div>
+  <div class="stat"><div class="stat-k">L5 sats</div><div class="stat-v" id="sL5">-</div></div>
+  <div class="stat"><div class="stat-k">Accuracy</div><div class="stat-v" id="sAcc">-</div></div>
+  <div class="stat"><div class="stat-k">TTFF</div><div class="stat-v" id="sTtff">-</div></div>
+  <div class="stat"><div class="stat-k">Uptime</div><div class="stat-v" id="sUp">-</div></div>
+  <div class="stat"><div class="stat-k">Speed</div><div class="stat-v" id="sSpd">-</div></div>
+  <div class="stat"><div class="stat-k">Altitude</div><div class="stat-v" id="sAlt">-</div></div>
+  <div class="stat"><div class="stat-k">No signal</div><div class="stat-v" id="sExp">-</div></div>
+</div>
+
+<div class="sec-title"><span>position</span></div>
+<div class="box">
+  <div class="coords">
+    <div class="coords-v" id="coords">no fix yet</div>
+    <button class="small-btn" onclick="copyCoords()">COPY</button>
+  </div>
+</div>
+
+<div class="sec-title"><span>constellations</span><span class="muted" id="constNote"></span></div>
+<div class="box"><div class="chips" id="chips"><span class="muted">-</span></div></div>
+
+<div class="sec-title"><span>sky plot</span></div>
+<div class="box">
+  <div class="sky-wrap"><svg id="sky" viewBox="0 0 320 320"></svg></div>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--accent)"></i>in fix</span>
+    <span><i class="dot" style="border:1.5px solid var(--accent)"></i>tracked</span>
+    <span><i class="dot" style="border:1px dashed var(--dim)"></i>no signal</span>
+  </div>
+</div>
+
+<div class="sec-title"><span>signal strength</span><span class="muted">dB-Hz · left L1 · right L5</span></div>
+<div class="box"><div class="bars" id="bars"><span class="muted">Lock the GPS to see the satellites</span></div></div>
+
+<div class="sec-title"><span>tools</span></div>
+<div class="box">
+  <div class="tools">
+    <button class="tool-btn act" onclick="runAgps()"><b>Refresh A-GPS</b><span>Fresh orbit data and exact time. Faster fixes.</span></button>
+    <button class="tool-btn danger act" onclick="runReset()"><b>Cold reset</b><span>Forget all assistance data. For a stuck GPS.</span></button>
+  </div>
+</div>
+
+<div class="sec-title"><span>navigation apps</span></div>
+<div class="box">
+  <div class="muted" style="margin-bottom:6px">Android sends GPS to apps in the background only every few minutes. Switched on apps keep getting it all the time.</div>
+  <div id="navList"><span class="muted">loading...</span></div>
+</div>
+
+<div class="sec-title"><span>settings</span></div>
+<div class="box">
+  <div class="row">
+    <div class="row-main">
+      <div class="row-title">Lock after boot</div>
+      <div class="row-sub">Start GPS Locker automatically when the phone starts</div>
+    </div>
+    <label class="switch act"><input type="checkbox" id="bootLock" onchange="setBootLock(this.checked)"><span class="slider"></span></label>
+  </div>
+</div>
+
+<div class="footer">
+  GPS Locker <span id="ver"></span> · by <a href="https://github.com/nikakvo" target="_blank">Tears Burn</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var MOD = '/data/adb/modules/gps-locker';
+  var CLI = '/system/bin/sh ' + MOD + '/gpslocker.sh';
+
+  var CONST = {
+    1: { n: 'GPS', p: 'G', c: 'var(--c-gps)' },
+    2: { n: 'SBAS', p: 'S', c: 'var(--c-sbas)' },
+    3: { n: 'GLONASS', p: 'R', c: 'var(--c-glo)' },
+    4: { n: 'QZSS', p: 'J', c: 'var(--c-qzss)' },
+    5: { n: 'BeiDou', p: 'C', c: 'var(--c-bds)' },
+    6: { n: 'Galileo', p: 'E', c: 'var(--c-gal)' },
+    7: { n: 'NavIC', p: 'I', c: 'var(--c-navic)' }
+  };
+  var NAV_NAMES = {
+    'net.osmand.plus': 'OsmAnd+', 'net.osmand': 'OsmAnd', 'app.organicmaps': 'Organic Maps', 'app.comaps': 'CoMaps',
+    'com.waze': 'Waze', 'com.google.android.apps.maps': 'Google Maps', 'com.sygic.aura': 'Sygic',
+    'com.here.app.maps': 'HERE WeGo', 'com.generalmagic.magicearth': 'Magic Earth',
+    'menion.android.locus': 'Locus Map', 'menion.android.locus.pro': 'Locus Map Pro',
+    'com.tomtom.gplay.navapp': 'TomTom GO', 'ru.yandex.yandexnavi': 'Yandex Navigator', 'com.huawei.maps.app': 'Petal Maps'
+  };
+
+  var live = { running: false };
+  var info = null;
+  var busy = false;
+  var pollTimer = null;
+
+  // ---------- root bridge ----------
+  var cbId = 0;
+  function exec(cmd, timeoutMs) {
+    return new Promise(function (resolve) {
+      if (typeof ksu === 'undefined' || !ksu.exec) { resolve({ code: -1, out: '', err: 'no ksu bridge' }); return; }
+      var name = 'gpsl_cb_' + (++cbId) + '_' + Date.now();
+      var done = false;
+      var t = setTimeout(function () { if (!done) { done = true; delete window[name]; resolve({ code: -2, out: '', err: 'timeout' }); } }, timeoutMs || 15000);
+      window[name] = function (code, stdout, stderr) {
+        if (done) return;
+        done = true; clearTimeout(t); delete window[name];
+        resolve({ code: code, out: stdout || '', err: stderr || '' });
+      };
+      try { ksu.exec(cmd, '{}', name); } catch (e) { done = true; clearTimeout(t); delete window[name]; resolve({ code: -1, out: '', err: String(e) }); }
+    });
+  }
+
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2600);
+  }
+
+  // One action at a time: taps on other buttons are ignored while it runs
+  function action(fn) {
+    if (busy) return;
+    busy = true; document.body.classList.add('busy');
+    Promise.resolve().then(fn).catch(function (e) { toast(String(e)); }).then(function () {
+      setTimeout(function () { busy = false; document.body.classList.remove('busy'); }, 250);
+    });
+  }
+
+  // ---------- data ----------
+  function parseJson(txt) {
+    var m = (txt || '').match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try { return JSON.parse(m[0]); } catch (e) { return null; }
+  }
+
+  var polling = false;
+  function poll() {
+    if (polling) return;
+    polling = true;
+    exec(CLI + ' status', 5000).then(function (r) {
+      polling = false;
+      var s = parseJson(r.out);
+      if (s) { live = s; render(); }
+    });
+  }
+
+  function loadInfo() {
+    return exec(CLI + ' info', 15000).then(function (r) {
+      var i = parseJson(r.out);
+      if (i) { info = i; renderInfo(); }
+    });
+  }
+
+  function startPolling() {
+    stopPolling();
+    poll();
+    pollTimer = setInterval(poll, 1000);
+  }
+  function stopPolling() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopPolling(); else { startPolling(); loadInfo(); }
+  });
+
+  // Merge the per-signal list into one entry per satellite
+  function satellites(list) {
+    var map = {};
+    (list || []).forEach(function (s) {
+      var k = s.c + ':' + s.svid;
+      var e = map[k];
+      if (!e) e = map[k] = { c: s.c, svid: s.svid, el: s.el, az: s.az, used: false, l1: 0, l5: 0, l1used: false, l5used: false };
+      var isL5 = s.freq && s.freq > 1.16e9 && s.freq < 1.19e9;
+      if (isL5) { e.l5 = Math.max(e.l5, s.cn0 || 0); e.l5used = e.l5used || s.used; }
+      else { e.l1 = Math.max(e.l1, s.cn0 || 0); e.l1used = e.l1used || s.used; }
+      e.used = e.used || s.used;
+      if (s.el) e.el = s.el; if (s.az) e.az = s.az;
+    });
+    return Object.keys(map).map(function (k) { return map[k]; });
+  }
+
+  // ---------- render ----------
+  function fmtDur(ms) {
+    if (ms == null || ms < 0) return '-';
+    var s = Math.floor(ms / 1000);
+    if (s < 60) return s + '<small>s</small>';
+    var m = Math.floor(s / 60);
+    if (m < 60) return m + '<small>m</small> ' + (s % 60) + '<small>s</small>';
+    return Math.floor(m / 60) + '<small>h</small> ' + (m % 60) + '<small>m</small>';
+  }
+  function set(id, html) { document.getElementById(id).innerHTML = html; }
+
+  function render() {
+    var s = live;
+    var on = !!s.running;
+    var sats = satellites(s.sats);
+    var withSig = sats.filter(function (x) { return x.l1 > 0 || x.l5 > 0; });
+    var noSig = sats.length - withSig.length;
+    var sigs = (s.sats || []).filter(function (x) { return x.cn0 > 0; });
+    var sigUsed = sigs.filter(function (x) { return x.used; }).length;
+    var fix = s.fix;
+    var locked = on && fix && fix.age_ms < 5000 && s.used > 0;
+
+    var hero = document.getElementById('hero');
+    hero.className = 'hero' + (on ? (locked ? ' on' : ' search') : '');
+    document.getElementById('logo').classList.toggle('off', !on);
+    document.getElementById('lockBtn').classList.toggle('on', on);
+    set('lockLbl', on ? 'UNLOCK' : 'LOCK');
+
+    if (!on) {
+      set('heroState', s.gps_on === false ? 'location is off' : 'off');
+      set('heroBig', '--<small> sats</small>');
+      set('heroLine', 'Tap LOCK to hold the GPS on');
+    } else if (locked) {
+      set('heroState', 'locked');
+      set('heroBig', s.used + '<small> / ' + s.visible + ' sats</small>');
+      set('heroLine', fix.acc != null ? ('±' + Math.round(fix.acc) + ' m accuracy') : 'position fixed');
+    } else {
+      set('heroState', 'searching');
+      set('heroBig', (s.used || 0) + '<small> / ' + (s.visible || 0) + ' sats</small>');
+      set('heroLine', 'Keep the phone under open sky');
+    }
+    set('hSub', on ? (locked ? 'locked · ' + s.used + ' satellites in fix' : 'searching satellites') : 'gnss keep-alive');
+
+    set('sSats', on ? (s.used + '<small>/' + s.visible + '</small>') : '-');
+    set('sSig', on ? (sigUsed + '<small>/' + sigs.length + '</small>') : '-');
+    set('sL5', on ? String(s.l5 != null ? s.l5 : withSig.filter(function (x) { return x.l5 > 0; }).length) : '-');
+    set('sAcc', on && fix && fix.acc != null ? ('±' + Math.round(fix.acc) + '<small>m</small>') : '-');
+    set('sTtff', on && s.ttff_ms > 0 ? ((s.ttff_ms / 1000).toFixed(1) + '<small>s</small>') : '-');
+    set('sUp', on ? fmtDur(s.uptime_ms) : '-');
+    set('sSpd', on && fix && fix.speed != null ? (Math.round(fix.speed * 3.6) + '<small>km/h</small>') : '-');
+    set('sAlt', on && fix && fix.alt != null ? (Math.round(fix.alt) + '<small>m</small>') : '-');
+    set('sExp', on ? String(noSig) : '-');
+
+    set('coords', on && fix ? (fix.lat.toFixed(6) + ', ' + fix.lon.toFixed(6)) : 'no fix yet');
+
+    renderChips(on ? withSig : []);
+    renderSky(on ? sats : []);
+    renderBars(on ? withSig : []);
+  }
+
+  function renderChips(sats) {
+    var el = document.getElementById('chips');
+    if (!sats.length) { el.innerHTML = '<span class="muted">-</span>'; set('constNote', ''); return; }
+    var by = {};
+    sats.forEach(function (x) {
+      var b = by[x.c] || (by[x.c] = { used: 0, vis: 0 });
+      b.vis++; if (x.used) b.used++;
+    });
+    el.innerHTML = Object.keys(by).sort().map(function (c) {
+      var k = CONST[c] || { n: '?', c: 'var(--dim)' };
+      return '<span class="chip"><i class="dot" style="background:' + k.c + '"></i>' + k.n + ' ' + by[c].used + '/' + by[c].vis + '</span>';
+    }).join('');
+    set('constNote', 'in fix / tracked');
+  }
+
+  function renderSky(sats) {
+    var svg = document.getElementById('sky');
+    var cx = 160, cy = 160, R = 140;
+    var h = '';
+    [90, 60, 30].forEach(function (e, i) {
+      var r = R * (90 - (e === 90 ? 0 : e)) / 90;
+      if (e === 90) r = R;
+      h += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#0d2630" stroke-width="1"' + (i ? ' stroke-dasharray="3 4"' : '') + '/>';
+    });
+    h += '<line x1="' + (cx - R) + '" y1="' + cy + '" x2="' + (cx + R) + '" y2="' + cy + '" stroke="#0d2630"/>';
+    h += '<line x1="' + cx + '" y1="' + (cy - R) + '" x2="' + cx + '" y2="' + (cy + R) + '" stroke="#0d2630"/>';
+    var lbl = 'font-family="Share Tech Mono, monospace" font-size="11" fill="#4f7280" text-anchor="middle"';
+    h += '<text x="' + cx + '" y="' + (cy - R - 4) + '" ' + lbl + '>N</text>';
+    h += '<text x="' + cx + '" y="' + (cy + R + 13) + '" ' + lbl + '>S</text>';
+    h += '<text x="' + (cx + R + 10) + '" y="' + (cy + 4) + '" ' + lbl + '>E</text>';
+    h += '<text x="' + (cx - R - 10) + '" y="' + (cy + 4) + '" ' + lbl + '>W</text>';
+    h += '<text x="' + (cx + 4) + '" y="' + (cy - R * 2 / 3 + 11) + '" font-family="Share Tech Mono, monospace" font-size="8" fill="#2c4a55">30°</text>';
+    h += '<text x="' + (cx + 4) + '" y="' + (cy - R / 3 + 11) + '" font-family="Share Tech Mono, monospace" font-size="8" fill="#2c4a55">60°</text>';
+
+    // draw weak first so satellites in the fix end up on top
+    sats.slice().sort(function (a, b) { return (a.used - b.used) || ((a.l1 + a.l5) - (b.l1 + b.l5)); }).forEach(function (s) {
+      if (s.el == null || s.az == null || s.el < 0) return;
+      var r = R * (90 - s.el) / 90;
+      var a = s.az * Math.PI / 180;
+      var x = cx + r * Math.sin(a), y = cy - r * Math.cos(a);
+      var k = CONST[s.c] || { p: '?', c: '#4f7280' };
+      var col = k.c.replace('var(', '').replace(')', '');
+      col = getComputedStyle(document.documentElement).getPropertyValue(col).trim() || '#4f7280';
+      var sig = Math.max(s.l1, s.l5);
+      if (s.used) {
+        h += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="7" fill="' + col + '"/>';
+      } else if (sig > 0) {
+        h += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="6" fill="#000" stroke="' + col + '" stroke-width="1.8"/>';
+      } else {
+        h += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.5" fill="none" stroke="#4f7280" stroke-width="1" stroke-dasharray="2 2"/>';
+      }
+      if (sig > 0) {
+        h += '<text x="' + (x + 9).toFixed(1) + '" y="' + (y + 3.5).toFixed(1) + '" font-family="Share Tech Mono, monospace" font-size="8.5" fill="' + (s.used ? '#e8fdff' : '#4f7280') + '">' + k.p + pad(s.svid) + '</text>';
+      }
+    });
+    svg.innerHTML = h;
+  }
+
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+  function renderBars(sats) {
+    var el = document.getElementById('bars');
+    if (!sats.length) { el.innerHTML = '<span class="muted">' + (live.running ? 'Waiting for satellite signals...' : 'Lock the GPS to see the satellites') + '</span>'; return; }
+    sats.sort(function (a, b) { return (a.c - b.c) || (a.svid - b.svid); });
+    el.innerHTML = sats.map(function (s) {
+      var k = CONST[s.c] || { p: '?', c: 'var(--dim)' };
+      var h1 = Math.min(100, Math.round(s.l1 * 2));
+      var h5 = Math.min(100, Math.round(s.l5 * 2));
+      var b = '<div class="bar' + (s.l1used ? '' : ' unused') + '" style="height:' + Math.max(2, h1) + 'px;background:' + k.c + '" title="L1 ' + s.l1 + '"></div>';
+      if (s.l5 > 0) b += '<div class="bar l5' + (s.l5used ? '' : ' unused') + '" style="height:' + h5 + 'px;background:' + k.c + '" title="L5 ' + s.l5 + '"></div>';
+      return '<div class="bar-col"><div class="bar-pair">' + b + '</div><div class="bar-lbl' + (s.used ? ' used' : '') + '">' + k.p + pad(s.svid) + '</div></div>';
+    }).join('');
+  }
+
+  function renderInfo() {
+    if (!info) return;
+    set('ver', info.version || '');
+    document.getElementById('bootLock').checked = String(info.boot_lock) === '1';
+    var perm = document.getElementById('permBox');
+    if (info.access && info.access !== 'ok') {
+      perm.classList.remove('hidden');
+      set('permText', 'Blocked: ' + info.access.replace('blocked:', '').trim().replace(/_/g, ' ').toLowerCase() + '.');
+    } else {
+      perm.classList.add('hidden');
+    }
+    var list = document.getElementById('navList');
+    var apps = (info.nav || []).filter(function (a) { return a.installed; });
+    if (!apps.length) { list.innerHTML = '<span class="muted">No known navigation app installed</span>'; return; }
+    list.innerHTML = apps.map(function (a) {
+      return '<div class="row"><div class="row-main"><div class="row-title">' + (NAV_NAMES[a.pkg] || a.pkg) + '</div><div class="row-sub">' + a.pkg + '</div></div>' +
+        '<label class="switch act"><input type="checkbox" data-pkg="' + a.pkg + '"' + (a.enabled ? ' checked' : '') + ' onchange="setNavApps()"><span class="slider"></span></label></div>';
+    }).join('');
+  }
+
+  // ---------- actions ----------
+  function toggleLock() {
+    action(function () {
+      var cmd = live.running ? 'stop' : 'start';
+      return exec(CLI + ' ' + cmd, 10000).then(function (r) {
+        toast(live.running ? 'GPS released' : 'Locking the GPS...');
+        setTimeout(poll, 600); setTimeout(poll, 1600);
+      });
+    });
+  }
+
+  function runAgps() {
+    action(function () {
+      return exec(CLI + ' agps', 15000).then(function (r) { toast(r.code === 0 ? 'A-GPS refresh requested' : ('Failed: ' + (r.err || r.out))); });
+    });
+  }
+
+  function runReset() {
+    if (!confirm('Cold reset deletes all GPS assistance data. The next fix starts from zero and can take longer. Continue?')) return;
+    action(function () {
+      return exec(CLI + ' reset', 15000).then(function (r) { toast(r.code === 0 ? 'Cold reset done' : ('Failed: ' + (r.err || r.out))); });
+    });
+  }
+
+  function setNavApps() {
+    var boxes = document.querySelectorAll('#navList input[type=checkbox]');
+    var on = [];
+    boxes.forEach(function (b) { if (b.checked) on.push(b.getAttribute('data-pkg')); });
+    // keep enabled apps that are not installed right now (they return when reinstalled)
+    (info && info.nav || []).forEach(function (a) { if (!a.installed && a.enabled) on.push(a.pkg); });
+    action(function () {
+      return exec(CLI + " navapps set '" + on.join(' ') + "'", 20000).then(function () {
+        toast('Navigation apps updated');
+        return loadInfo();
+      });
+    });
+  }
+
+  function setBootLock(v) {
+    action(function () {
+      return exec(CLI + ' bootlock ' + (v ? 'on' : 'off'), 8000).then(function () { toast(v ? 'Lock after boot: on' : 'Lock after boot: off'); });
+    });
+  }
+
+  function openPermissions() {
+    action(function () { return exec(CLI + ' permissions', 8000); });
+  }
+
+  function copyCoords() {
+    var t = document.getElementById('coords').textContent;
+    if (!live.fix) { toast('No fix yet'); return; }
+    var done = function () { toast('Copied: ' + t); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(done, fallback);
+    } else fallback();
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = t; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { toast(t); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  render();
+  loadInfo();
+  startPolling();
+</script>
+</body>
+</html>

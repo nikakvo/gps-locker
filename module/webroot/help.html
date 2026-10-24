@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GPS Locker - Help</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" media="print" onload="this.media='all'">
+  <style>
+    :root {
+      --bg: #000; --bg2: #03080b; --surface: #030b0e; --surface2: #061217;
+      --border: #0d2630; --border2: #164252;
+      --accent: #00e5ff; --green: #00ff88; --amber: #ffaa00; --red: #ff4455; --blue: #4d8dff; --purple: #cc88ff;
+      --text: #b0f4ff; --dim: #4f7280; --hi: #e8fdff;
+      --mono: 'Share Tech Mono', ui-monospace, 'Roboto Mono', Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 70px); }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--sans);
+      font-size: 14px; line-height: 1.7; min-height: 100vh;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+      padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+    }
+    .header {
+      background: #060606; border-bottom: 1px solid var(--border);
+      padding: 12px 16px; padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .h-title { font-family: var(--mono); font-size: 14px; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; }
+    .h-sub { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-top: 1px; }
+    .back-btn {
+      background: transparent; border: 1px solid var(--accent); border-radius: 3px; color: var(--accent);
+      padding: 7px 14px; font-size: 11px; font-family: var(--mono); letter-spacing: 1px; cursor: pointer;
+    }
+    .back-btn:active { background: var(--accent); color: #000; }
+
+    .toc { margin: 14px 14px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; }
+    .toc-title { font-size: 9px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--dim); margin-bottom: 8px; }
+    .toc a { display: block; color: var(--blue); text-decoration: none; font-size: 12.5px; font-family: var(--mono); padding: 3px 0; }
+    .toc a:active { color: var(--accent); }
+
+    .sec-title { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--dim); font-family: var(--mono); padding: 26px 16px 8px; }
+    .sec-title::before { content: '// '; color: var(--accent); opacity: .6; }
+
+    .box { margin: 0 14px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+    .box p { margin-bottom: 10px; }
+    .box p:last-child { margin-bottom: 0; }
+    .box h3 { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: normal; letter-spacing: .5px; margin: 16px 0 6px; }
+    .box h3:first-child { margin-top: 0; }
+    .box ul, .box ol { margin: 6px 0 10px 18px; }
+    .box li { margin-bottom: 5px; }
+    strong { color: var(--hi); font-weight: 600; }
+    code { font-family: var(--mono); font-size: 12px; color: var(--amber); background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 0 5px; word-break: break-all; }
+    pre { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 12px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text); margin: 8px 0; white-space: pre; }
+    pre .cm { color: var(--dim); }
+
+    .tw { overflow-x: auto; margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 7px 8px 7px 0; color: var(--dim); font-weight: normal; font-family: var(--mono); text-transform: uppercase; letter-spacing: .06em; font-size: 9.5px; border-bottom: 1px solid var(--border); }
+    td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    td:first-child { color: var(--hi); font-family: var(--mono); white-space: nowrap; padding-right: 12px; }
+
+    .pill { display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: .8px; padding: 0 6px; border-radius: 2px; border: 1px solid; text-transform: uppercase; white-space: nowrap; }
+    .ok   { color: var(--accent); border-color: rgba(0,229,255,.35); }
+    .warn { color: var(--amber); border-color: rgba(255,170,0,.4); }
+    .bad  { color: var(--red);   border-color: rgba(255,68,85,.45); }
+    .skip { color: var(--dim);   border-color: var(--border); }
+
+    .note { border-left: 2px solid var(--blue); background: rgba(77,141,255,.06); padding: 10px 12px; border-radius: 0 4px 4px 0; margin: 10px 0; font-size: 13px; }
+    .note.warn { border-left-color: var(--amber); background: rgba(255,170,0,.06); }
+    .note.ok   { border-left-color: var(--accent); background: rgba(0,229,255,.05); }
+
+    .pre-wrap { position: relative; margin: 8px 0; }
+    .pre-wrap pre { margin: 0; padding-right: 46px; min-height: 44px; white-space: pre-wrap; word-break: break-all; }
+    .copy-btn {
+      position: absolute; top: 6px; right: 6px; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface2); border: 1px solid var(--border2); border-radius: 3px;
+      color: var(--dim); cursor: pointer; padding: 0;
+    }
+    .copy-btn svg { width: 16px; height: 16px; }
+    .copy-btn:active { border-color: var(--accent); }
+    .copy-btn.done { color: var(--green); border-color: rgba(0,255,136,.45); }
+    .flow { font-family: var(--mono); font-size: 12px; color: var(--text); text-align: center; line-height: 1.9; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 10px; margin: 8px 0; }
+    .flow b { color: var(--accent); font-weight: normal; }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+    .footer { text-align: center; padding: 28px 16px 8px; font-size: 10px; font-family: var(--mono); color: var(--dim); }
+    .footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="h-title">◎ Help</div>
+    <div class="h-sub">gps locker · gnss keep-alive</div>
+  </div>
+  <button class="back-btn" onclick="goBack()">‹ BACK</button>
+</div>
+
+<div class="toc">
+  <div class="toc-title">contents</div>
+  <a href="#what">1 · What this module does</a>
+  <a href="#start">2 · Quick start</a>
+  <a href="#how">3 · How the lock works</a>
+  <a href="#ways">4 · Tile, notification, Action</a>
+  <a href="#numbers">5 · Reading the numbers</a>
+  <a href="#sky">6 · Sky plot &amp; signal strength</a>
+  <a href="#tools">7 · Tools - A-GPS &amp; cold reset</a>
+  <a href="#nav">8 · Navigation apps</a>
+  <a href="#perm">9 · Permissions on HyperOS / MIUI</a>
+  <a href="#battery">10 · Battery</a>
+  <a href="#files">11 · Files &amp; settings</a>
+  <a href="#cli">12 · Command line</a>
+  <a href="#trouble">13 · Troubleshooting</a>
+  <a href="#uninstall">14 · Update &amp; uninstall</a>
+</div>
+
+<!-- 1 -->
+<div class="sec-title" id="what">1 · what this module does</div>
+<div class="box">
+  <p>Android switches the GPS receiver off the moment no app is asking for a position. Switch from your navigation app to a message for a minute and the satellites are gone; back in the map you wait for a new fix. Some ROMs (HyperOS, MIUI) cut the receiver even faster to save power.</p>
+  <p><strong>GPS Locker holds the receiver on</strong> while you need it. Once it has the satellites it keeps them, so every app that asks for a position gets one at once: Google Maps, OsmAnd, Waze, Sygic and anything else.</p>
+  <p>It is meant for when you drive or travel: switch it on, switch it off when you arrive.</p>
+  <div class="tw"><table>
+    <tr><th>requirement</th><th></th></tr>
+    <tr><td>Root</td><td>SukiSU Ultra or KernelSU (WebUI built in). Magisk works too - open the WebUI with MMRL or KSU WebUI Standalone.</td></tr>
+    <tr><td>Android</td><td>12 or newer</td></tr>
+    <tr><td>GPS</td><td>Any chip. Dual-frequency (L1 + L5) chips show both bands.</td></tr>
+  </table></div>
+</div>
+
+<!-- 2 -->
+<div class="sec-title" id="start">2 · quick start</div>
+<div class="box">
+  <ol>
+    <li>Flash the zip. The small companion app is installed at the same time.</li>
+    <li>Quick Settings → <strong>Edit</strong> → add the <strong>GPS Locker</strong> tile.</li>
+    <li>Tap the tile. A notification shows the satellites, for example <code>14/22 sats locked</code>.</li>
+    <li>Tap the tile again to release the GPS.</li>
+  </ol>
+  <div class="note warn"><strong>HyperOS / MIUI:</strong> the system may block location for the new app. The WebUI then shows a warning, and the Action button opens the right settings page. Allow Location <strong>All the time</strong> and Notifications once. See <a href="#perm" style="color:var(--blue)">section 9</a>.</div>
+</div>
+
+<!-- 3 -->
+<div class="sec-title" id="how">3 · how the lock works</div>
+<div class="box">
+  <div class="flow">
+    you tap the tile<br>↓<br>
+    <b>companion app</b> asks for a GPS position every second<br>↓<br>
+    the receiver stays on and keeps tracking its satellites<br>↓<br>
+    every navigation app gets a ready position
+  </div>
+  <p>The request goes straight to the GPS chip, not through Google Play services, so it works with or without them.</p>
+  <p>The companion app has no icon and no screen. It is only a background service, the tile and the notification. It has no internet permission and sends nothing anywhere.</p>
+  <h3>Faster first fix</h3>
+  <p>How fast the first position comes depends on the assistance data the chip has: predicted satellite orbits (XTRA / PSDS) and the exact time. Android downloads them by itself. <strong>Refresh A-GPS</strong> in Tools asks for a fresh copy right now. GPS Locker does <strong>not</strong> replace your <code>gps.conf</code>: the vendor file is tuned for your chip, and copies from other phones do more harm than good.</p>
+</div>
+
+<!-- 4 -->
+<div class="sec-title" id="ways">4 · tile, notification, action</div>
+<div class="box">
+  <div class="tw"><table>
+    <tr><td>Tile</td><td>On / off. While on, the subtitle shows <code>14/22 sats</code> or <code>Searching</code>.</td></tr>
+    <tr><td>Notification</td><td>Satellites in the fix, accuracy, how many have L5, and per system (GPS, GLO, BDS, GAL). <strong>Stop</strong> releases the GPS.</td></tr>
+    <tr><td>Action</td><td>The Action button of the module in your root manager does the same as the tile and prints the result.</td></tr>
+    <tr><td>WebUI</td><td>The big <strong>LOCK</strong> button, plus everything below.</td></tr>
+  </table></div>
+  <p><strong>Clear all</strong> in recent apps: on HyperOS / MIUI the module locks the app the same way as <em>Lock</em> on a card in recents, so Clear all leaves the GPS lock running. This works from the first reboot after the install. On other ROMs, if the system kills the app, Android starts it again after a short pause; the chip still remembers the satellites, so the lock comes back quickly.</p>
+</div>
+
+<!-- 5 -->
+<div class="sec-title" id="numbers">5 · reading the numbers</div>
+<div class="box">
+  <div class="tw"><table>
+    <tr><td>Satellites</td><td><strong>in the fix / with a signal</strong>. Each satellite counts once.</td></tr>
+    <tr><td>Signals</td><td>The same, per signal. A dual-frequency phone receives many satellites twice (L1 and L5), so this number is higher.</td></tr>
+    <tr><td>L5 sats</td><td>Satellites heard on the second band too (GPS L5, Galileo E5a, BeiDou B2a). L5 copes better with reflections between buildings.</td></tr>
+    <tr><td>No signal</td><td>Satellites the chip expects above you from its orbit data, but does not hear (behind a building, a roof, the horizon).</td></tr>
+    <tr><td>Accuracy</td><td>Estimated error radius of the position.</td></tr>
+    <tr><td>TTFF</td><td>Time to first fix after the lock started.</td></tr>
+  </table></div>
+  <div class="note"><strong>Why other apps show bigger numbers:</strong> OsmAnd and many GPS apps count signals instead of satellites, and include the "no signal" ones in the total. Seen side by side, OsmAnd's <code>26/67</code> and GPS Locker's <code>15/22</code> can describe exactly the same sky.</div>
+</div>
+
+<!-- 6 -->
+<div class="sec-title" id="sky">6 · sky plot &amp; signal strength</div>
+<div class="box">
+  <h3>Sky plot</h3>
+  <p>Looking up at the sky: the centre is straight overhead, the outer ring is the horizon, north is up. Each dot is a satellite.</p>
+  <div class="tw"><table>
+    <tr><td>filled dot</td><td>used in the position fix</td></tr>
+    <tr><td>ring</td><td>heard, but not used</td></tr>
+    <tr><td>dashed</td><td>expected there, no signal</td></tr>
+  </table></div>
+  <p>
+    <span class="dot" style="background:#4d8dff"></span>GPS (G) ·
+    <span class="dot" style="background:#ff5566"></span>GLONASS (R) ·
+    <span class="dot" style="background:#ffaa00"></span>BeiDou (C) ·
+    <span class="dot" style="background:#cc88ff"></span>Galileo (E) ·
+    <span class="dot" style="background:#00ff88"></span>QZSS (J) ·
+    <span class="dot" style="background:#8a9aa0"></span>SBAS (S) ·
+    <span class="dot" style="background:#ff77cc"></span>NavIC (I)
+  </p>
+  <h3>Signal strength</h3>
+  <p>One column per satellite, in dB-Hz. The wide bar is L1, the narrow one next to it L5. Faded bars are not used in the fix. Rough guide: under 20 weak, 20 to 30 usable, over 30 good, over 40 open sky.</p>
+</div>
+
+<!-- 7 -->
+<div class="sec-title" id="tools">7 · tools - a-gps &amp; cold reset</div>
+<div class="box">
+  <div class="tw"><table>
+    <tr><td>Refresh A-GPS</td><td>Asks Android for fresh assistance data now: the exact time and the predicted orbits. Needs internet. Useful before a trip, or when the first fix is slow.</td></tr>
+    <tr><td>Cold reset</td><td>Deletes all assistance data, then asks for a fresh copy. The next fix starts from nothing and can take longer. Only for a GPS that is stuck, shows a wrong place, or never gets a fix.</td></tr>
+  </table></div>
+  <div class="note">With a VPN or a DNS blocker, make sure the vendor's assistance servers are reachable (on Qualcomm phones <code>*.xtracloud.net</code> / <code>*.izatcloud.net</code>), otherwise the chip has no fresh orbit data and first fixes are slower.</div>
+</div>
+
+<!-- 8 -->
+<div class="sec-title" id="nav">8 · navigation apps</div>
+<div class="box">
+  <p>Android gives apps in the background a new position only every few minutes. A navigation app you switched away from then shows an old position for a moment when you come back.</p>
+  <p>Apps switched on here are exempt from that limit (Android's background location throttle whitelist), so they keep getting the position every second even in the background. OsmAnd, Waze, Sygic and Google Maps are on by default; other known navigation apps appear when they are installed.</p>
+  <p>Uninstalling the module puts the system list back as it was.</p>
+</div>
+
+<!-- 9 -->
+<div class="sec-title" id="perm">9 · permissions on hyperos / miui</div>
+<div class="box">
+  <p>The module grants every permission the app needs at install and at every boot: location (also in the background), notifications, no battery restrictions, autostart, and on Xiaomi phones the Millet exemption so the app is never frozen.</p>
+  <p>HyperOS and MIUI keep an extra permission layer for apps that were not installed from a store. It can block location and notifications <strong>silently</strong>: the tile works, but no satellites and no notification. Only the app's own settings page can change it.</p>
+  <ol>
+    <li>WebUI warning → <strong>Open settings</strong> (or press the module's Action button).</li>
+    <li>Permissions → Location → <strong>Allow all the time</strong>.</li>
+    <li>Notifications → on.</li>
+  </ol>
+  <p>This is needed once. HyperOS keeps it, also through module updates.</p>
+</div>
+
+<!-- 10 -->
+<div class="sec-title" id="battery">10 · battery</div>
+<div class="box">
+  <p>A GPS receiver that never sleeps uses power: on a modern phone roughly as much as a navigation app with the screen off. That is fine in a car with a charger, not for a whole day in your pocket. Switch GPS Locker off when you no longer need it.</p>
+  <p><strong>Lock after boot</strong> in Settings starts it automatically at every boot. Leave it off unless the phone lives in a car.</p>
+</div>
+
+<!-- 11 -->
+<div class="sec-title" id="files">11 · files &amp; settings</div>
+<div class="box">
+  <div class="tw"><table>
+    <tr><th>path</th><th>what</th></tr>
+    <tr><td>/data/adb/gps-locker/</td><td>Everything the module keeps, in one folder:
+      <code>config.conf</code> (settings, below), <code>gps-locker.log</code> (boot and tool log),
+      <code>throttle_whitelist.orig</code> (the system's own list, restored at uninstall).</td></tr>
+    <tr><td>/data/adb/modules/gps-locker/</td><td>The module itself, the companion app (<code>GPSLocker.apk</code>) and the command line script.</td></tr>
+  </table></div>
+  <h3>config.conf</h3>
+  <div class="tw"><table>
+    <tr><td>BOOT_LOCK</td><td><code>1</code> / <code>0</code> - lock after boot</td></tr>
+    <tr><td>NAV_APPS</td><td>package names, space separated</td></tr>
+  </table></div>
+</div>
+
+<!-- 12 -->
+<div class="sec-title" id="cli">12 · command line</div>
+<div class="box">
+  <p>Everything the WebUI does goes through one script, which also works from a root shell (Termux):</p>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh <span class="cm">&lt;command&gt;</span>'</pre>
+  <p>Ready to copy:</p>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh start'</pre>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh stop'</pre>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh status'</pre>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh check'</pre>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh fix'</pre>
+  <pre>su -c '/system/bin/sh /data/adb/modules/gps-locker/gpslocker.sh help'</pre>
+  <div class="tw"><table>
+    <tr><td>start · stop · toggle</td><td>Lock or release the GPS</td></tr>
+    <tr><td>status</td><td>Live status as JSON, every satellite and signal</td></tr>
+    <tr><td>agps</td><td>Refresh A-GPS</td></tr>
+    <tr><td>reset</td><td>Cold reset</td></tr>
+    <tr><td>check</td><td>Are location and notifications really allowed</td></tr>
+    <tr><td>permissions</td><td>Open the app's settings page</td></tr>
+    <tr><td>fix</td><td>Grant every permission and exemption again</td></tr>
+    <tr><td>navapps</td><td>List the navigation apps</td></tr>
+    <tr><td>navapps set "a b"</td><td>Replace that list</td></tr>
+    <tr><td>bootlock on · off</td><td>Lock after boot</td></tr>
+  </table></div>
+  <p><code>gpslocker.sh help</code> lists every command.</p>
+</div>
+
+<!-- 13 -->
+<div class="sec-title" id="trouble">13 · troubleshooting</div>
+<div class="box">
+  <h3>The tile turns on, but no notification and no satellites</h3>
+  <p>The system blocks the app. Run <code>check</code>; if it says <span class="pill warn">blocked</span>, follow <a href="#perm" style="color:var(--blue)">section 9</a>.</p>
+  <h3>No tile in Quick Settings</h3>
+  <p>Quick Settings → Edit → find <strong>GPS Locker</strong> in the list of available tiles and drag it up. After the app was reinstalled the tile has to be added again.</p>
+  <h3>Searching for a long time</h3>
+  <p>Indoors the phone may hear only a few weak satellites. Go outside or near a window. If it never finds a fix outdoors: Tools → <strong>Refresh A-GPS</strong>, and as a last step <strong>Cold reset</strong>.</p>
+  <h3>Something else</h3>
+  <p>Check the log:</p>
+  <pre>su -c 'cat /data/adb/gps-locker/gps-locker.log'</pre>
+</div>
+
+<!-- 14 -->
+<div class="sec-title" id="uninstall">14 · update &amp; uninstall</div>
+<div class="box">
+  <h3>Updating the module</h3>
+  <p>Flash the new zip. The companion app is updated in place: settings, the tile and the permissions you allowed are kept.</p>
+  <h3>Uninstall</h3>
+  <p>Remove the module in your root manager and reboot. The companion app is removed, the battery and Millet exemptions are taken back, the app is unlocked in recents, the system's background location list is restored and <code>/data/adb/gps-locker/</code> is deleted.</p>
+</div>
+
+<div class="footer">
+  GPS Locker · by <a href="https://github.com/nikakvo" target="_blank">Tears Burn</a>
+</div>
+
+<script>
+  // Copy button on every command block
+  (function () {
+    var ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+    var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+    function copyText(t, done) {
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(done, fallback);
+      } else fallback();
+    }
+    document.querySelectorAll('pre').forEach(function (pre) {
+      var wrap = document.createElement('div');
+      wrap.className = 'pre-wrap';
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+      var b = document.createElement('button');
+      b.className = 'copy-btn'; b.type = 'button'; b.title = 'Copy'; b.innerHTML = ICON_COPY;
+      b.onclick = function () {
+        copyText(pre.textContent.trim(), function () {
+          b.classList.add('done'); b.innerHTML = ICON_OK;
+          setTimeout(function () { b.classList.remove('done'); b.innerHTML = ICON_COPY; }, 1500);
+        });
+      };
+      wrap.appendChild(b);
+    });
+  })();
+  function goBack() {
+    var left = false;
+    window.addEventListener('pagehide', function () { left = true; });
+    if (window.history.length > 1) {
+      window.history.back();
+      setTimeout(function () { if (!left) window.location.href = 'index.html'; }, 300);
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+</script>
+</body>
+</html>
