@@ -11,6 +11,10 @@ Android switches the GPS receiver off as soon as no app asks for a position, and
 it, so every app that asks for a position gets one at once: Google Maps, OsmAnd, Waze, Sygic and
 anything else.
 
+## Screenshot
+
+<p align="center"><img src="assets/screenshot.jpg" alt="GPS Locker" width="320"></p>
+
 ## Features
 
 - **Quick Settings tile** - one tap to lock, one tap to release. The subtitle shows the live
@@ -87,8 +91,7 @@ KEYSTORE=~/keys/my.jks KEY_ALIAS=mykey bash build.sh
 ```
 
 `PASS_FILE` can point to a file (chmod 600) with the keystore password; otherwise `apksigner`
-asks for it. If the project has no Gradle wrapper script yet, `build.sh` copies one from another
-local project (edit `WRAP_SRC`) - or run `gradle wrapper` once.
+asks for it.
 
 ## License
 
