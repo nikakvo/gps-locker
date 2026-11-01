@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.1
+
+- WebUI: opens fast again on a quick reopen. The status no longer shows "off" for a few seconds, and the version, navigation apps and "lock after boot" switch no longer stay empty.
+
 ## v1.0.0
 
 First release.

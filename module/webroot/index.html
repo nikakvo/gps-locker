@@ -306,6 +306,26 @@
     });
   }
 
+  // On a quick reopen the root manager can run the page's first command
+  // before it has registered the new page, and that answer never comes. So
+  // before the first real call a harmless echo is sent a few times, a moment
+  // apart, and the first answer means the page is registered. Only this echo
+  // is repeated, never a real command.
+  function ready() {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish() { if (!done) { done = true; resolve(); } }
+      function ask() {
+        if (done) return;
+        exec('echo gpsl_ok', 15000).then(function (r) {
+          if (r.code === -1 || r.out.indexOf('gpsl_ok') >= 0) finish();
+        });
+      }
+      [0, 400, 1000, 2000, 3500, 6000].forEach(function (t) { setTimeout(ask, t); });
+      setTimeout(finish, 16000);
+    });
+  }
+
   function toast(msg) {
     var el = document.getElementById('toast');
     el.textContent = msg; el.classList.add('show');
@@ -590,8 +610,10 @@
   }
 
   render();
-  loadInfo();
-  startPolling();
+  ready().then(function () {
+    loadInfo();
+    startPolling();
+  });
 </script>
 </body>
 </html>
