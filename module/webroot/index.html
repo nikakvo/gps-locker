@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GPS Locker</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" media="print" onload="this.media='all'">
   <style>
     :root {
       --bg: #000; --bg2: #03080b; --surface: #030b0e; --surface2: #061217;
@@ -258,7 +257,7 @@
 </div>
 
 <div class="footer">
-  GPS Locker <span id="ver"></span> · by <a href="https://github.com/nikakvo" target="_blank">Tears Burn</a>
+  GPS Locker <span id="ver"></span> · by <a href="#" data-ext="https://github.com/nikakvo/">Tears Burn</a>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -331,6 +330,24 @@
     el.textContent = msg; el.classList.add('show');
     clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2600);
   }
+
+  // Outside sites open in the phone's browser. The root manager would load a
+  // link in this WebView, where the site's scripts could reach ksu.exec.
+  function openExt(url) {
+    if (!/^https:\/\/[a-z0-9.-]+\/[a-z0-9._\/-]*$/i.test(url)) { toast('Not opened: not an https address'); return; }
+    exec("am start -a android.intent.action.VIEW -d '" + url + "' 2>&1", 15000).then(function (r) {
+      if (r.code === -2) return;   // no answer in 15 s: counts as opened
+      var out = (r.out || '') + (r.err || '');
+      var err = out.split('\n').filter(function (l) { return /^Error/.test(l); })[0];
+      if (r.code !== 0 || err) toast('Could not open the browser: ' + (err || r.err || 'am start ended with ' + r.code));
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-ext]');
+    if (!a) return;
+    e.preventDefault();
+    openExt(a.getAttribute('data-ext'));
+  });
 
   // One action at a time: taps on other buttons are ignored while it runs
   function action(fn) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2
+
+- WebUI: loads nothing from the internet any more (no Google web font).
+- WebUI and help: the GitHub link opens in your browser instead of inside the WebUI, where a website could reach the root manager.
+- Help: every command sits in a box with a COPY button, tables read well on a phone, and a back-to-top arrow shows once you scroll down.
+
 ## v1.0.1
 
 - WebUI: opens fast again on a quick reopen. The status no longer shows "off" for a few seconds, and the version, navigation apps and "lock after boot" switch no longer stay empty.
