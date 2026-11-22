@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3
+
+- Help: the contents and the links to other sections no longer add steps to the phone's Back. One Back leaves the help page, however many sections you opened.
+
 ## v1.0.2
 
 - WebUI: loads nothing from the internet any more (no Google web font).
